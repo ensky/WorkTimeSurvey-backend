@@ -25,5 +25,8 @@
     "winston": "^2.2.0",
     "winston-mongodb": "^1.6.0"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "engines": {
+    "node": "6.x"
+  }
 }
