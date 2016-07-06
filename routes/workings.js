@@ -84,6 +84,7 @@ router.post('/', function(req, res, next) {
         author.name = req.facebook.name,
         author.type = "facebook";
     } else {
+        author.id = "-1";
         author.type = "test";
     }
 
@@ -173,6 +174,10 @@ router.post('/', function(req, res, next) {
             });
         }
     }).then(function(data) {
+        return checkQuota(req.db, {id: data.author.id, type: data.author.type}).then(function() {
+            return data;
+        });
+    }).then(function(data) {
         return collection.insert(data);
     }).then(function(result) {
         winston.info("workings insert data success", data);
@@ -234,6 +239,45 @@ function validateWorking(data) {
     if (! (data.company.id || data.company.name)) {
         throw new HttpError("company_id or company_name is required", 422);
     }
+}
+
+/*
+ * Check the quota, limit queries <= 10
+ *
+ * The quota checker use author as _id
+ *
+ * @return  Promise
+ *
+ * Fullfilled with newest queries_count
+ * Rejected with HttpError
+ */
+function checkQuota(db, author) {
+    var collection = db.collection('authors');
+
+    return collection.findAndModify(
+        {
+            _id: author,
+            queries_count: {$lt: 10},
+        },
+        [
+        ],
+        {
+            $inc: { queries_count: 1 },
+        },
+        {
+            upsert: true,
+            new: true,
+        }
+    ).then(function(result) {
+        if (result.value.queries_count > 10) {
+            throw new HttpError("Quota Exceeds", 429);
+        }
+
+        return result.value.queries_count;
+    }).catch(function(err) {
+        throw new HttpError("Quota Exceeds", 429);
+    });
+
 }
 
 module.exports = router;
