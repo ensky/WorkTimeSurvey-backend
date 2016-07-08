@@ -25,7 +25,7 @@ router.get('/search', function(req, res, next) {
     }
 
     var s = {
-        '資本額(元)': -1,
+        capital: -1,
         type: -1,
         name: 1,
         id: 1,
