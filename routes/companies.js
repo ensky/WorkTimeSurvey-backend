@@ -1,9 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var cors = require('./cors');
 var HttpError = require('./errors').HttpError;
-
-router.use(cors);
 
 /*
  * GET /
@@ -19,12 +16,24 @@ router.get('/search', function(req, res, next) {
     if (search == "") {
         q = {};
     } else {
-        q = {name: new RegExp("^" + search)};
+        q = {
+            $or: [
+                {name: new RegExp("^" + search)},
+                {id: search},
+            ]
+        };
     }
+
+    var s = {
+        '資本額(元)': -1,
+        type: -1,
+        name: 1,
+        id: 1,
+    };
 
     var collection = req.db.collection('companies');
 
-    collection.find(q).skip(25 * page).limit(25).toArray().then(function(results) {
+    collection.find(q).sort(s)skip(25 * page).limit(25).toArray().then(function(results) {
         res.send(results);
     }).catch(function(err) {
         next(new HttpError("Internal Server Error", 500));

@@ -1,10 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var request = require('request');
-var cors = require('./cors');
 var HttpError = require('./errors').HttpError;
-
-router.use(cors);
 
 /*
  * GET /

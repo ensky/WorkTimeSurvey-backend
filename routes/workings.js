@@ -1,11 +1,8 @@
 var express = require('express');
 var router = express.Router();
-var cors = require('./cors');
 var HttpError = require('./errors').HttpError;
 var facebook = require('../libs/facebook');
 var winston = require('winston');
-
-router.use(cors);
 
 /*
  * Show the newest company, week_work_time, job_title
@@ -157,7 +154,7 @@ router.post('/', function(req, res, next) {
         if (data.company.id) {
             return searchCompanyById(data.company.id).then(function(results) {
                 if (results.length === 0) {
-                    throw new HttpError("company_id is invalid", 429);
+                    throw new HttpError("公司統編不正確", 429);
                 }
 
                 data.company.name = results[0].name;
@@ -192,52 +189,52 @@ router.post('/', function(req, res, next) {
 
 function validateWorking(data) {
     if (! data.job_title) {
-        throw new HttpError("job_title is required", 422);
+        throw new HttpError("職稱未填", 422);
     }
 
     if (! data.week_work_time) {
-        throw new HttpError("week_work_time is required", 422);
+        throw new HttpError("最近一週實際工時未填", 422);
     }
     data.week_work_time = parseInt(data.week_work_time);
     if (isNaN(data.week_work_time)) {
-        throw new HttpError("week_work_time need to be a number", 422);
+        throw new HttpError("最近一週實際工時必須是數字", 422);
     }
     if (data.week_work_time < 0 || data.week_work_time > 168) {
-        throw new HttpError("week_work_time must be 0~168", 422);
+        throw new HttpError("最近一週實際工時必須在0~168之間", 422);
     }
 
     if (! data.overtime_frequency) {
-        throw new HttpError("overtime_frequency is required", 422);
+        throw new HttpError("加班頻率必填", 422);
     }
     if (["0", "1", "2", "3"].indexOf(data.overtime_frequency) === -1) {
-        throw new HttpError("overtime_frequency must be 0, 1, 2, 3", 422);
+        throw new HttpError("加班頻率格式錯誤", 422);
     }
     data.overtime_frequency = parseInt(data.overtime_frequency);
 
     if (! data.day_promised_work_time) {
-        throw new HttpError("day_promised_work_time is required", 422);
+        throw new HttpError("工作日表訂工時未填", 422);
     }
     data.day_promised_work_time = parseInt(data.day_promised_work_time);
     if (isNaN(data.day_promised_work_time)) {
-        throw new HttpError("day_promised_work_time need to be a number", 422);
+        throw new HttpError("工作日表訂工時必須是數字", 422);
     }
     if (data.day_promised_work_time < 0 || data.day_promised_work_time > 24) {
-        throw new HttpError("day_promised_work_time must be 0~24", 422);
+        throw new HttpError("工作日表訂工時必須在0~24之間", 422);
     }
 
     if (! data.day_real_work_time) {
-        throw new HttpError("day_real_work_time is required", 422);
+        throw new HttpError("工作日實際工時必填", 422);
     }
     data.day_real_work_time = parseInt(data.day_real_work_time);
     if (isNaN(data.day_real_work_time)) {
-        throw new HttpError("day_real_work_time need to be a number", 422);
+        throw new HttpError("工作日實際工時必須是數字", 422);
     }
     if (data.day_real_work_time < 0 || data.day_real_work_time > 24) {
-        throw new HttpError("day_real_work_time must be 0~24", 422);
+        throw new HttpError("工作日實際工時必須在0~24之間", 422);
     }
 
     if (! (data.company.id || data.company.name)) {
-        throw new HttpError("company_id or company_name is required", 422);
+        throw new HttpError("公司/單位名稱 或 統一編號其中一個必填", 422);
     }
 }
 
@@ -270,12 +267,12 @@ function checkQuota(db, author) {
         }
     ).then(function(result) {
         if (result.value.queries_count > 10) {
-            throw new HttpError("Quota Exceeds", 429);
+            throw new HttpError("已超過您可以上傳的次數", 429);
         }
 
         return result.value.queries_count;
     }).catch(function(err) {
-        throw new HttpError("Quota Exceeds", 429);
+        throw new HttpError("已超過您可以上傳的次數", 429);
     });
 
 }

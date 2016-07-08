@@ -6,6 +6,8 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var expressMongoDb = require('express-mongo-db');
 
+var cors = require('cors');
+
 // Logging
 var winston = require('winston');
 require('winston-mongodb').MongoDB;
@@ -21,6 +23,14 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(expressMongoDb(process.env.MONGODB_URI));
+
+app.use(cors({
+    origin: [
+        'https://worktime.goodjob.life',
+        'http://localhost:8080',
+        'http://localhost:8000',
+    ],
+}));
 
 app.use('/', routes);
 app.use('/companies', require('./routes/companies'));
