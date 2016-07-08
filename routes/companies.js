@@ -33,7 +33,7 @@ router.get('/search', function(req, res, next) {
 
     var collection = req.db.collection('companies');
 
-    collection.find(q).sort(s)skip(25 * page).limit(25).toArray().then(function(results) {
+    collection.find(q).sort(s).skip(25 * page).limit(25).toArray().then(function(results) {
         res.send(results);
     }).catch(function(err) {
         next(new HttpError("Internal Server Error", 500));
