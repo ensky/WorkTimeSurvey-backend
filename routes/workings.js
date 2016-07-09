@@ -105,8 +105,8 @@ router.post('/', function(req, res, next) {
     if (req.body.company_id && (typeof req.body.company_id === "string") && req.body.company_id !== "") {
         data.company.id = req.body.company_id;
     }
-    if (req.body.company_name && (typeof req.body.company_name === "string") && req.body.company_name !== "") {
-        data.company.name = req.body.company_name;
+    if (req.body.company && (typeof req.body.company === "string") && req.body.company !== "") {
+        data.query = req.body.company;
     }
 
     /*
@@ -161,11 +161,21 @@ router.post('/', function(req, res, next) {
                 return data;
             });
         } else {
-            return searchCompanyByName(data.company.name).then(function(results) {
-                if (results.length === 1) {
-                    data.company.id = results[0].id;
-                    return data;
+            return searchCompanyById(data.query).then(function(results) {
+                if (results.length === 0) {
+                    return searchCompanyByName(data.query).then(function(results) {
+                        if (results.length === 1) {
+                            data.company.id = results[0].id;
+                            data.company.name = results[0].name;
+                            return data;
+                        } else {
+                            data.company.name = data.query;
+                            return data;
+                        }
+                    });
                 } else {
+                    data.company.id = results[0].id;
+                    data.company.name = results[0].name;
                     return data;
                 }
             });
@@ -233,8 +243,10 @@ function validateWorking(data) {
         throw new HttpError("工作日實際工時必須在0~24之間", 422);
     }
 
-    if (! (data.company.id || data.company.name)) {
-        throw new HttpError("公司/單位名稱 或 統一編號其中一個必填", 422);
+    if (! data.company.id) {
+        if (! data.query) {
+            throw new HttpError("公司/單位名稱必填", 422);
+        }
     }
 }
 
