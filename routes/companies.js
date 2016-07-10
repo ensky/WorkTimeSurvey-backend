@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var HttpError = require('./errors').HttpError;
+var lodash = require('lodash');
 
 /*
  * GET /
@@ -14,11 +15,11 @@ router.get('/search', function(req, res, next) {
     var q;
 
     if (search == "") {
-        q = {};
+        throw new HttpError("key is required", 429);
     } else {
         q = {
             $or: [
-                {name: new RegExp("^" + search)},
+                {name: new RegExp("^" + lodash.escapeRegExp(search))},
                 {id: search},
             ]
         };

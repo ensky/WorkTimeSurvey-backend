@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var request = require('request');
 var HttpError = require('./errors').HttpError;
+var lodash = require('lodash');
 
 /*
  * GET /
@@ -17,7 +18,7 @@ router.get('/search', function(req, res, next) {
     if (search == "") {
         q = {isFinal: true};
     } else {
-        q = {des: new RegExp(search), isFinal: true};
+        q = {des: new RegExp(lodash.escapeRegExp(search)), isFinal: true};
     }
 
     console.log(q);
