@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "GoodJob",
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "node ./bin/www",
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -27,7 +28,11 @@
     "winston": "^2.2.0",
     "winston-mongodb": "^1.6.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^2.5.3",
+    "supertest": "^1.2.0"
+  },
   "engines": {
     "node": "6.x"
   }

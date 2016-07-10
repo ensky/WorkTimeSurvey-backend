@@ -18,7 +18,7 @@ router.get('/search', function(req, res, next) {
     if (search == "") {
         q = {isFinal: true};
     } else {
-        q = {des: new RegExp(lodash.escapeRegExp(search)), isFinal: true};
+        q = {des: new RegExp(lodash.escapeRegExp(search.toUpperCase())), isFinal: true};
     }
 
     console.log(q);

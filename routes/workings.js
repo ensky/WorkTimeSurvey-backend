@@ -163,13 +163,13 @@ router.post('/', function(req, res, next) {
         } else {
             return searchCompanyById(data.query).then(function(results) {
                 if (results.length === 0) {
-                    return searchCompanyByName(data.query).then(function(results) {
+                    return searchCompanyByName(data.query.toUpperCase()).then(function(results) {
                         if (results.length === 1) {
                             data.company.id = results[0].id;
                             data.company.name = results[0].name;
                             return data;
                         } else {
-                            data.company.name = data.query;
+                            data.company.name = data.query.toUpperCase();
                             return data;
                         }
                     });
