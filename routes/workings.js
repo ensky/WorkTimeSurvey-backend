@@ -154,7 +154,7 @@ router.post('/', function(req, res, next) {
         if (data.company.id) {
             return searchCompanyById(data.company.id).then(function(results) {
                 if (results.length === 0) {
-                    throw new HttpError("公司統編不正確", 429);
+                    throw new HttpError("公司統編不正確", 422);
                 }
 
                 data.company.name = results[0].name;
@@ -266,7 +266,7 @@ function checkQuota(db, author) {
     return collection.findAndModify(
         {
             _id: author,
-            queries_count: {$lt: 10},
+            queries_count: {$lt: 3},
         },
         [
         ],
@@ -278,7 +278,7 @@ function checkQuota(db, author) {
             new: true,
         }
     ).then(function(result) {
-        if (result.value.queries_count > 10) {
+        if (result.value.queries_count > 3) {
             throw new HttpError("已超過您可以上傳的次數", 429);
         }
 
