@@ -3,6 +3,7 @@ var router = express.Router();
 var request = require('request');
 var HttpError = require('./errors').HttpError;
 var lodash = require('lodash');
+var winston = require('winston');
 
 /*
  * GET /
@@ -21,7 +22,7 @@ router.get('/search', function(req, res, next) {
         q = {des: new RegExp(lodash.escapeRegExp(search.toUpperCase())), isFinal: true};
     }
 
-    console.log(q);
+    winston.info("job search", q);
 
     var collection = req.db.collection('job_titles');
 

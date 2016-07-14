@@ -11,11 +11,18 @@ var cors = require('cors');
 // Logging
 var winston = require('winston');
 require('winston-mongodb').MongoDB;
-winston.add(winston.transports.MongoDB, {
-    db: process.env.MONGODB_URI,
-});
 
 var app = express();
+
+// winston logging setup
+if (app.get('env') !== 'test') {
+    winston.add(winston.transports.MongoDB, {
+        db: process.env.MONGODB_URI,
+    });
+}
+if (app.get('env') === 'test') {
+    winston.remove(winston.transports.Console);
+}
 
 if (app.get('env') !== 'test') {
     app.use(logger('dev'));

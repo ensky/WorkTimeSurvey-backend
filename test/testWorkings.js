@@ -3,42 +3,66 @@ const request = require('supertest');
 const app = require('../app');
 const MongoClient = require('mongodb').MongoClient;
 
-describe('POST /workings', function() {
+describe('Workings 工時資訊', function() {
     var db = undefined;
 
-    before(function() {
+    before('DB: Setup', function() {
         return MongoClient.connect(process.env.MONGODB_URI).then(function(_db) {
             db = _db;
         });
     });
 
-    function generatePayload(opt) {
-        opt = opt || {};
-        const valid = {
-            job_title: 'test',
-            week_work_time: '40',
-            overtime_frequency: '3',
-            day_promised_work_time: '8',
-            day_real_work_time: '10',
-            company_id: '00000000',
-            company: 'GoodJob',
-        };
+    describe('GET /workings/latest', function() {
+        before('Seeding some workings', function() {
+            return db.collection('workings').insertMany([
+                {
+                    created_at: new Date(),
+                },
+                {
+                    created_at: new Date(),
+                },
+                {
+                    created_at: new Date(),
+                },
+                {
+                    created_at: new Date(),
+                },
+            ]);
+        });
 
-        var payload = {};
-        for (let key in valid) {
-            if (opt[key]) {
-                if (opt[key] === -1) {
-                    continue;
-                } else {
-                    payload[key] = opt[key];
-                }
-            } else {
-                payload[key] = valid[key];
-            }
-        }
+        it('return the pagination', function(done) {
+            request(app).get('/workings/latest')
+                .expect(200)
+                .expect(function(res) {
+                    assert.propertyVal(res.body, 'total', 4);
+                    assert.property(res.body, 'workings');
+                    assert.lengthOf(res.body.workings, 4);
+                })
+                .end(done);
+        });
 
-        return payload;
-    }
+        after(function() {
+            return db.collection('workings').remove({});
+        });
+    });
+
+describe('POST /workings', function() {
+    before(function() {
+        return db.collection('companies').insertMany([
+            {
+                id: '00000001',
+                name: 'GOODJOB',
+            },
+            {
+                id: '00000002',
+                name: 'GOODJOBGREAT',
+            },
+            {
+                id: '00000003',
+                name: 'GOODJOBGREAT',
+            },
+        ]);
+    });
 
     it('需要回傳 401 如果不能 FB 登入');
 
@@ -127,23 +151,6 @@ describe('POST /workings', function() {
     });
 
     describe('company', function() {
-        before(function() {
-            return db.collection('companies').insertMany([
-                {
-                    id: '00000001',
-                    name: 'GOODJOB',
-                },
-                {
-                    id: '00000002',
-                    name: 'GOODJOBGREAT',
-                },
-                {
-                    id: '00000003',
-                    name: 'GOODJOBGREAT',
-                },
-            ]);
-        });
-
         it('只給 company_id 成功新增', function(done) {
             request(app).post('/workings')
                 .send(generatePayload({
@@ -152,8 +159,9 @@ describe('POST /workings', function() {
                 }))
                 .expect(200)
                 .expect(function(res) {
-                    assert.equal(res.body.company.id, '00000001');
-                    assert.equal(res.body.company.name, 'GOODJOB');
+                    assert.equal(res.body.queries_count, 1);
+                    assert.equal(res.body.working.company.id, '00000001');
+                    assert.equal(res.body.working.company.name, 'GOODJOB');
                 })
                 .end(done);
         });
@@ -176,8 +184,9 @@ describe('POST /workings', function() {
                 }))
                 .expect(200)
                 .expect(function(res) {
-                    assert.equal(res.body.company.id, '00000001');
-                    assert.equal(res.body.company.name, 'GOODJOB');
+                    assert.equal(res.body.queries_count, 1);
+                    assert.equal(res.body.working.company.id, '00000001');
+                    assert.equal(res.body.working.company.name, 'GOODJOB');
                 })
                 .end(done);
         });
@@ -190,8 +199,9 @@ describe('POST /workings', function() {
                 }))
                 .expect(200)
                 .expect(function(res) {
-                    assert.equal(res.body.company.id, '00000001');
-                    assert.equal(res.body.company.name, 'GOODJOB');
+                    assert.equal(res.body.queries_count, 1);
+                    assert.equal(res.body.working.company.id, '00000001');
+                    assert.equal(res.body.working.company.name, 'GOODJOB');
                 })
                 .end(done);
         });
@@ -204,8 +214,9 @@ describe('POST /workings', function() {
                 }))
                 .expect(200)
                 .expect(function(res) {
-                    assert.isUndefined(res.body.company.id);
-                    assert.equal(res.body.company.name, 'GOODJOBGREAT');
+                    assert.equal(res.body.queries_count, 1);
+                    assert.isUndefined(res.body.working.company.id);
+                    assert.equal(res.body.working.company.name, 'GOODJOBGREAT');
                 })
                 .end(done);
         });
@@ -223,11 +234,10 @@ describe('POST /workings', function() {
                         }))
                         .expect(200)
                         .expect(function(res) {
-                            assert.equal(res.body.company.id, '00000001');
-                            assert.equal(res.body.company.name, 'GOODJOB');
+                            assert.equal(res.body.working.company.id, '00000001');
+                            assert.equal(res.body.working.company.name, 'GOODJOB');
                         })
                         .end(function(err) {
-                            console.log("!");
                             if (err) {
                                 reject(err);
                             } else {
@@ -250,8 +260,42 @@ describe('POST /workings', function() {
             });
         });
 
-        after(function() {
-            return db.collection('companies').remove({});
+        it('新增 2 筆資料，quries_count 會顯示 2', function(done) {
+            (new Promise(function(resolve, reject) {
+                request(app).post('/workings')
+                    .send(generatePayload({
+                        company_id: '00000001',
+                        company: -1,
+                    }))
+                    .expect(200)
+                    .expect(function(res) {
+                        assert.equal(res.body.queries_count, 1);
+                        assert.equal(res.body.working.company.id, '00000001');
+                        assert.equal(res.body.working.company.name, 'GOODJOB');
+                    })
+                    .end(function(err) {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            resolve();
+                        }
+                    });
+            })).then(function() {
+                request(app).post('/workings')
+                    .send(generatePayload({
+                        company_id: '00000001',
+                        company: -1,
+                    }))
+                    .expect(200)
+                    .expect(function(res) {
+                        assert.equal(res.body.queries_count, 2);
+                        assert.equal(res.body.working.company.id, '00000001');
+                        assert.equal(res.body.working.company.name, 'GOODJOB');
+                    })
+                    .end(done);
+            }).catch(function(err) {
+                done(err);
+            });
         });
     });
 
@@ -259,8 +303,42 @@ describe('POST /workings', function() {
         return db.collection('authors').remove({});
     });
 
-    after(function() {
+    after('DB: 清除 workings', function() {
         return db.collection('workings').remove({});
     });
+
+    after('DB: 清除 companies', function() {
+        return db.collection('companies').remove({});
+    });
 });
+
+});
+
+function generatePayload(opt) {
+    opt = opt || {};
+    const valid = {
+        job_title: 'test',
+        week_work_time: '40',
+        overtime_frequency: '3',
+        day_promised_work_time: '8',
+        day_real_work_time: '10',
+        company_id: '00000000',
+        company: 'GoodJob',
+    };
+
+    var payload = {};
+    for (let key in valid) {
+        if (opt[key]) {
+            if (opt[key] === -1) {
+                continue;
+            } else {
+                payload[key] = opt[key];
+            }
+        } else {
+            payload[key] = valid[key];
+        }
+    }
+
+    return payload;
+}
 
