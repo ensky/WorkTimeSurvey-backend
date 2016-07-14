@@ -266,7 +266,7 @@ function checkQuota(db, author) {
     return collection.findAndModify(
         {
             _id: author,
-            queries_count: {$lt: 3},
+            queries_count: {$lt: 5},
         },
         [
         ],
@@ -278,7 +278,7 @@ function checkQuota(db, author) {
             new: true,
         }
     ).then(function(result) {
-        if (result.value.queries_count > 3) {
+        if (result.value.queries_count > 5) {
             throw new HttpError("已超過您可以上傳的次數", 429);
         }
 

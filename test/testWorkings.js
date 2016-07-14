@@ -210,6 +210,46 @@ describe('POST /workings', function() {
                 .end(done);
         });
     
+        it('只能新增 5 筆資料', function(done) {
+            const count = 5;
+
+            var requestPromiseStack = [];
+            for (let i = 0; i < count; i++) {
+                requestPromiseStack.push(new Promise(function(resolve, reject) {
+                    request(app).post('/workings')
+                        .send(generatePayload({
+                            company_id: '00000001',
+                            company: -1,
+                        }))
+                        .expect(200)
+                        .expect(function(res) {
+                            assert.equal(res.body.company.id, '00000001');
+                            assert.equal(res.body.company.name, 'GOODJOB');
+                        })
+                        .end(function(err) {
+                            console.log("!");
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve();
+                            }
+                        });
+                }));
+            }
+
+            Promise.all(requestPromiseStack).then(function() {
+                request(app).post('/workings')
+                    .send(generatePayload({
+                        company_id: '00000001',
+                        company: -1,
+                    }))
+                    .expect(429)
+                    .end(done);
+            }).catch(function(err) {
+                done(err);
+            });
+        });
+
         after(function() {
             return db.collection('companies').remove({});
         });

@@ -15,11 +15,11 @@ router.get('/search', function(req, res, next) {
     var q;
 
     if (search == "") {
-        throw new HttpError("key is required", 429);
+        throw new HttpError("key is required", 422);
     } else {
         q = {
             $or: [
-                {name: new RegExp("^" + lodash.escapeRegExp(search))},
+                {name: new RegExp("^" + lodash.escapeRegExp(search.toUpperCase()))},
                 {id: search},
             ]
         };
