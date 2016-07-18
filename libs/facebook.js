@@ -18,7 +18,7 @@ function access_token_auth(access_token) {
         }
         
         if (access_token === "") {
-            throw Error("access_token is required");
+            throw new Error("access_token is required");
         }
 
         request.get({

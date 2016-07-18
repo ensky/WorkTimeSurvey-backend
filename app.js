@@ -14,6 +14,8 @@ require('winston-mongodb').MongoDB;
 
 var app = express();
 
+app.set('trust proxy', 1);
+
 // winston logging setup
 if (app.get('env') !== 'test') {
     winston.add(winston.transports.MongoDB, {

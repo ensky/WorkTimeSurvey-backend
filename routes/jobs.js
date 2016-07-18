@@ -12,6 +12,8 @@ var winston = require('winston');
  * Show 25 results per page
  */
 router.get('/search', function(req, res, next) {
+    winston.info("/jobs/search", {query: req.query, ip: req.ip, ips: req.ips});
+
     var search = req.query.key || "";
     var page = req.query.page || 0;
     var q;
@@ -21,8 +23,6 @@ router.get('/search', function(req, res, next) {
     } else {
         q = {des: new RegExp(lodash.escapeRegExp(search.toUpperCase())), isFinal: true};
     }
-
-    winston.info("job search", q);
 
     var collection = req.db.collection('job_titles');
 
@@ -39,6 +39,8 @@ router.get('/search', function(req, res, next) {
  * Show 10 results per page
  */
 router.get('/:job_title/statistics', function(req, res, next) {
+    winston.info("/jobs/xxx/statistics", {job_title: req.params.job_title, ip: req.ip, ips: req.ips});
+
     var job_title = req.params.job_title;
     var collection = req.db.collection('workings');
 

@@ -10,7 +10,6 @@ env:
     global:
         - MONGODB_URI=mongodb://localhost/goodjob
         - NODE_ENV=test
-        - SKIP_FACEBOOK_AUTH=1
 
 install:
     - npm install

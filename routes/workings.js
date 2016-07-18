@@ -10,6 +10,8 @@ const winston = require('winston');
  * [page = 0]
  */
 router.get('/latest', function(req, res, next) {
+    winston.info("/workings/latest", {query: req.query, ip: req.ip, ips: req.ips});
+
     var page = req.query.page || 0;
     var limit = req.query.limit || 25;
 
@@ -51,12 +53,12 @@ router.post('/', function(req, res, next) {
     var access_token = req.body.access_token;
 
     facebook.access_token_auth(access_token).then(function(facebook) {
-        winston.info("facebook auth success", {access_token: access_token});
+        winston.info("facebook auth success", {access_token: access_token, ip: req.ip, ips: req.ips});
 
         req.facebook = facebook;
         next();
     }).catch(function(err) {
-        winston.info("facebook auth fail", {access_token: access_token});
+        winston.info("facebook auth fail", {access_token: access_token, ip: req.ip, ips: req.ips});
 
         next(new HttpError("Unauthorized", 401));
     });
@@ -128,7 +130,7 @@ router.post('/', function(req, res, next) {
     try {
         validateWorking(working);
     } catch (err) {
-        winston.info("workings insert data fail", data);
+        winston.info("validating fail", {id: data._id, ip: req.ip, ips: req.ips});
 
         next(err);
         return;
@@ -205,11 +207,11 @@ router.post('/', function(req, res, next) {
     }).then(function(data) {
         return collection.insert(data.working);
     }).then(function(result) {
-        winston.info("workings insert data success", data);
+        winston.info("workings insert data success", {id: data._id, ip: req.ip, ips: req.ips});
 
         res.send(data);
     }).catch(function(err) {
-        winston.info("workings insert data fail", data);
+        winston.info("workings insert data fail", {id: data._id, ip: req.ip, ips: req.ips, err: err});
 
         next(err);
     });
