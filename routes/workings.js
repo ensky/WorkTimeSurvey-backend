@@ -112,6 +112,7 @@ router.post('/', function(req, res, next) {
         "job_title", "week_work_time",
         "overtime_frequency",
         "day_promised_work_time", "day_real_work_time",
+        "comment",
     ].forEach(function(field, i) {
         if (req.body[field] && (typeof req.body[field] === "string") && req.body[field] !== "") {
             working[field] = req.body[field];

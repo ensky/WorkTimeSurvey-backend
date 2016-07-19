@@ -188,6 +188,21 @@ describe('Workings 工時資訊', function() {
             });
         });
 
+        describe('comment 備註', function() {
+            it('can be inserted', function(done) {
+                request(app).post('/workings')
+                    .send(generatePayload({
+                        company_id: '00000001',
+                        comment: 'Hello world',
+                    }))
+                    .expect(200)
+                    .expect(function(res) {
+                        assert.propertyVal(res.body.working, 'comment', 'Hello world');
+                    })
+                    .end(done);
+            });
+        });
+
         describe('company', function() {
             it('只給 company_id 成功新增', function(done) {
                 request(app).post('/workings')
