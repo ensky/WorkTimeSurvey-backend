@@ -4,7 +4,7 @@ var request = require('request');
 var HttpError = require('./errors').HttpError;
 var lodash = require('lodash');
 var winston = require('winston');
-
+const nodejieba = require("nodejieba");
 /*
  * GET /
  * [page = 0]
@@ -49,7 +49,9 @@ router.get('/:job_title/statistics', function(req, res, next) {
     collection.aggregate([
         {
             $match: {
-                job_title: job_title,
+                job_title_fts: {
+                    $all: nodejieba.cut(job_title, true)
+                }
             }
         },
         {
@@ -74,6 +76,7 @@ router.get('/:job_title/statistics', function(req, res, next) {
     ]).toArray().then(function(results) {
         res.send(results);
     }).catch(function(err) {
+        winston.error(err);
         next(new HttpError("Internal Server Error", 500));
     });
 });

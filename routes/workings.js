@@ -3,6 +3,7 @@ const router = express.Router();
 const HttpError = require('./errors').HttpError;
 const facebook = require('../libs/facebook');
 const winston = require('winston');
+const nodejieba = require("nodejieba");
 
 /*
  * Show the newest company, week_work_time, job_title
@@ -140,6 +141,7 @@ router.post('/', function(req, res, next) {
      * Normalize the data
      */
     working.job_title = working.job_title.toUpperCase();
+    working.job_title_fts = nodejieba.cut(working.job_title, true);
 
     /*
      * So, here, the data are well-down
@@ -214,6 +216,9 @@ router.post('/', function(req, res, next) {
     }).then(function(result) {
         winston.info("workings insert data success", {id: data.working._id, ip: req.ip, ips: req.ips});
 
+        collection.ensureIndex({
+            job_title_fts: 1
+        });
         res.send(data);
     }).catch(function(err) {
         winston.info("workings insert data fail", {id: data._id, ip: req.ip, ips: req.ips, err: err});
